@@ -1,183 +1,121 @@
-## Sing_in_with_Facebook_flutter_right_way
+# Sing_in_with_Facebook_flutter_right_way
 
+Read my article in medium : 
+https://medium.com/@bayazid.excelitai/flutter-facebook-authentication-c6a1cb8fa3a
 
-## Flutter Google and Facebook Authentication
 
+Users can register in your application through their facebook account and it's really very easy to implement.
 
-google authentication with firebase
-Google authentication without firebase
-facebook auth
+This article will demonstrate how to set up the Flutter app to implement Facebook Authentication.
 
 
-## Authentication using google 
 
-1.Authentication using google with firebase
-Requirement:
-a)create a new flutter project.
-  Add these packages in pubspec yaml file :
-  1.firebase core
-  2.firebase auth
-  3.google sign
+## Follow the steps :
 
-b)open your firebase console account.Add your project in firebase with package name and SHA1 key.
-Where do you get the project package name?
-Folder : android>app>src>main>res>AndroidManifest
+## Open your developer facebook console with your facebook account.
 
-How to create a SHA1 key?
-Command : 
-keytool -list -v -keystore ~/.android/debug.keystore -alias android_debugkey -storepass android -keypass android
+click here : https://developers.facebook.com
 
-source : https://stackoverflow.com/questions/30070264/get-sha1-fingerprint-certificate-in-android-studio-for-google-maps
+## 2. Click on create app.
+Select Business Type then add your project name.
 
+## 3. Choose your platform and click next.
 
-c)Add all the firebase dependencies in your project following the instruction of firebase.
+## 4. Add this dependency in your app level gradle-build file and click next.
 
-d)Download the service json file and add in your project app folder.
+implementation 'com.facebook.android:facebook-android-sdk:latest.release'
 
-e)Build a login screen ui with a login button.
-f)Write a function for handling user login and logout. Call the function in the onPressed  method of your login button.
+## 5. Now you have to provide your package name in first textbox
+ and Second one your_package_name.MainActivity
 
-For Login, 
-Example:
+## 6. Generate a hash key using this command 
 
-	signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleSignInAccount =
-      await _googleSignIn.signIn();
-      if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
-        final AuthCredential authCredential = GoogleAuthProvider.credential(
-            accessToken: googleSignInAuthentication.accessToken,
-            idToken: googleSignInAuthentication.idToken);
-        await _auth.signInWithCredential(authCredential);
-      }
-    } on FirebaseAuthException catch (e) {
-      print(e.message);
-      throw e;
-    }
-  }
+For Mac :
+keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore | openssl sha1 -binary | openssl base64
 
+For Windows : 
+keytool -exportcert -alias YOUR_RELEASE_KEY_ALIAS -keystore YOUR_RELEASE_KEY_PATH | openssl sha1 -binary | openssl base64
 
+## 7. Open your project folder
+android\app\src\main\res\values
 
+add a file name as strings.xml and add these code inside the file.
 
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="facebook_app_id">465379152419170</string>
+<string name="fb_login_protocol_scheme">fb465379152419170</string>
+<string name="facebook_client_token">465379152419170</string>
+</resources>
 
+Copy your facebook id from developer console account and paste above.
 
 
-For Logout, 
-Example:
+## 8. In your Android manifest file add these line before <application>
 
-googleSignOut() async {
-    await _auth.signOut();
-    await _googleSignIn.signOut();
-  }
+<queries>
+ <provider android:authorities="com.facebook.katana.provider.PlatformProvider" />
+ </queries>
+<uses-permission android:name="android.permission.INTERNET" />
 
-Before Run your project : 
- 	Make changes in 
-		        compileSdkVersion 31
-		        minSdkVersion 22
-        		        targetSdkVersion 31
 
-Then in Android Studio : 
+  <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
 
-File>Project structure>select diversion android 31>click on problems>again select SDK version then apply all changes and save.Hopefully you can overcome the firebase gradle-build error by doing this.
+ <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
 
-Also If you face in generating keystone files then go to the environment variable and add your java jdk/jre path properly.
 
-Finally execute your project.
+  <activity android:name="com.facebook.FacebookActivity"
+        android:configChanges=
+                "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+        android:label="@string/app_name" />
+    <activity
+        android:name="com.facebook.CustomTabActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="@string/fb_login_protocol_scheme" />
+        </intent-filter>
+    </activity>
 
 
- 2.Authentication using google without firebase
 
-Requirement:
+## 9. Create a new flutter project.
 
-a)create a new flutter project.
-  Add package :
-  	google sign
+## 10. Add this package
+ flutter facebook auth : https://pub.dev/packages/flutter_facebook_auth
 
-2.Open your google cloud console account.Add your project in cloud console with project package name and SHA1 key(generate same way as previously said).
+## 11. Create a button named as Sign in with facebook in your login_screen file. Then call the sign in function from its onPressed method.
 
-3.Generate a keystore file from the terminal by using this command :
+## Sign in function :
 
-  keytool -list -v -keystore ~/.android/debug.keystore -alias android_debugkey       -storepass android -keypass android
-
-more about this command : https://stackoverflow.com/questions/30070264/get-sha1-fingerprint-certificate-in-android-studio-for-google-maps
-
-Keep notes:
-*your alias name
-*your key store .jks file name and path
-*password of key store file
-Add this information in your build gradle-build file.
- Example : 
-
-  signingConfigs {
-        debug {
-            keyAlias 'upload'
-            keyPassword '12345678'
-            storeFile file('upload-keystore.jks')
-            storePassword '12345678'
-        }
-    }
-
-
-
-
-
-
-
-
-Write a login function look like this and call the function from its onPressed method: 
-
- GoogleSignIn _googleSignIn = GoogleSignIn();
-    try {
-      var result = await _googleSignIn.signIn();
-      if(result!=null){
-      print(result);
-    } catch (error) {
-      print(error);
-    }
-  }
-
-
-Before Run your project : 
- 	Make changes in 
-		        compileSdkVersion 31
-		        minSdkVersion 22
-        		        targetSdkVersion 31
-
-Then in Android Studio : 
-
-File>Project structure>select diversion android 31>click on problems>again select SDK version then apply all changes and save.Hopefully you can overcome the firebase gradle-build error by doing this.
-
-Also If you face in generating keystone files then go to the environment variable and add your java jdk/jre path properly.
-
-Finally execute your project.
-
-
- 3.Authentication using Facebook
-
-Requirement:
-
-1.Create a new flutter project
-	add packages :
-	flutter_facebook_auth: ^5.0.6
-
-2.Create an account on developer Facebook.
-	add your application
-	follow the instructions and add all the necessary dependencies in your     application.
-
-
-
-
-
-Problem you might Face with Facebook login :
-
-error in manifest file
-
-Possible Solution for your problem :
-
-Add these lines after the package name in the manifest file.
-
-<provider android:authorities=“com.facebook.katana.provider.PlatformProvider” />
-</queries>
-
+Future<void> _login() async {
+ final LoginResult result = await FacebookAuth.instance
+ .login();
+if (result.status == LoginStatus.success) {
+ _accessToken = result.accessToken;
+ _printCredentials();
+final userData = await FacebookAuth.instance.getUserData();
+ // final userData = await FacebookAuth.instance.getUserData(fields: "email,birthday,friends,gender,link");
+ _userData = userData;
+ } else {
+ print(result.status);
+ print(result.message);
+ }
+setState(() {
+ _checking = false;
+ });
+ }
+ 
+## Sign out Function :
+
+Future<void> _logOut() async {
+ await FacebookAuth.instance.logOut();
+ _accessToken = null;
+ _userData = null;
+ setState(() {});
+ }
+
+
+These are the most important settings you need to do before run your project.
